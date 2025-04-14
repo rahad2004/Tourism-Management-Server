@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const e = require("express");
 const app = express();
 const port = 5000;
 
@@ -46,23 +47,19 @@ async function run() {
       const id = req.params.id;
       console.log("Requested ID:", id);
 
-      try {
-        const query = { _id: new ObjectId(id) };
-        const spot = await tourSpots.findOne(query);
+      const query = { _id: new ObjectId(id) };
+      const spot = await tourSpots.findOne(query);
 
-        if (!spot) {
-          return res
-            .status(404)
-            .send({ success: false, message: "Spot not found" });
-        }
-
-        res.send(spot);
-      } catch (error) {
-        console.error("Error fetching spot:", error);
-        res
-          .status(500)
-          .send({ success: false, message: "Internal server error" });
+      if (!spot) {
+        return res
+          .status(404)
+          .send({ success: false, message: "Spot not found" });
       }
+      res.send({
+        success: true,
+        message: "This the details page",
+        data: spot,
+      });
     });
 
     // adding a place
@@ -80,24 +77,53 @@ async function run() {
       }
 
       const result = await tourSpots.insertOne(place);
-      res.send({
+      res.status(200).send({
         success: true,
         message: "Tourist spot added successfully!",
         data: result,
       });
     });
 
-    // get my add palce
+    // delete a place
 
+    app.delete("/tourists-spots/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await tourSpots.deleteOne(query);
+      if (result.deletedCount > 0) {
+        res.send({
+          success: true,
+          message: "Tourist spot deleted successfully.",
+        });
+      } else {
+        res.status(404),
+          send({
+            success: false,
+            message: "Spot not found.",
+          });
+      }
+    });
+
+    // get my add palce
     app.get("/my-sports", async (req, res) => {
       const email = req.query.email;
-      console.log(email);
       const query = { email: email };
-
       const spots = await tourSpots.find(query).toArray();
-      console.log(spots);
 
-      res.send(spots);
+      if (spots.length === 0) {
+        return res.status(404).send({
+          success: false,
+          message: "No tourist Spot Found on this user",
+          data: [],
+        });
+      }
+
+      res.status(200).send({
+        success: true,
+        message: "User-specific tourist spot fetch successFully",
+        data: spots,
+      });
     });
 
     // Send a ping to confirm a successful connection
