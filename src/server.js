@@ -45,8 +45,6 @@ async function run() {
 
     app.get("/tourists-spots/:id", async (req, res) => {
       const id = req.params.id;
-      console.log("Requested ID:", id);
-
       const query = { _id: new ObjectId(id) };
       const spot = await tourSpots.findOne(query);
 
@@ -124,6 +122,23 @@ async function run() {
         message: "User-specific tourist spot fetch successFully",
         data: spots,
       });
+    });
+
+    app.put("/tourists-spots/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = { $set: data };
+
+      console.log(data);
+
+      const result = await tourSpots.updateOne(query, update);
+
+      if (result.modifiedCount > 0) {
+        res.send({ success: true, message: "update successfully" });
+      } else {
+        res.send({ success: false, message: "spot not found" });
+      }
     });
 
     // Send a ping to confirm a successful connection
