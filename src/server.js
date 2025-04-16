@@ -27,6 +27,35 @@ async function run() {
 
     const tourSpots = client.db("Tourism").collection("Tour-places");
 
+    const countries = client.db("Tourism").collection("countries");
+
+    //  get all coutery data
+
+    app.get("/countries", async (req, res) => {
+      const result = await countries.find().toArray();
+      res.send(result);
+    });
+
+    //get one country data
+
+    app.get("/tourists-spots/country/:country", async (req, res) => {
+      const country = req.params.country;
+      const query = { countryName: country };
+      const spots = await tourSpots.find(query).toArray();
+      if (spots.length === 0) {
+        return res.send({
+          success: false,
+          message: "Sorry, our services are not available in this country yet.",
+        });
+      }
+
+      res.send({
+        success: true,
+        message: `Showing tourist spots in ${country}`,
+        data: spots,
+      });
+    });
+
     //get all your place
 
     app.get("/tourists-spots", async (req, res) => {
